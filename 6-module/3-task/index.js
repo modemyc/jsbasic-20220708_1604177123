@@ -4,7 +4,7 @@ export default class Carousel {
   constructor(slides) {
     this.slides = slides;
 
-    this._elem = createElement(this._template());
+    this._elem = createElement(this.template());
     this._initCarouselEvents();
   }
 
@@ -12,7 +12,7 @@ export default class Carousel {
     return this._elem;
   }
 
-  _template() {
+  template() {
     return `
     <div class="carousel">
     <div class="carousel__arrow carousel__arrow_right">
@@ -22,15 +22,14 @@ export default class Carousel {
       <img src="/assets/images/icons/angle-left-icon.svg" alt="icon">
     </div>
     <div class="carousel__inner">
-    ${this.slides
-      .map(
+    ${this.slides.map(
         (element) => `
     <div class="carousel__slide" data-id=${element.id}>
       <img src="/assets/images/carousel/${
         element.image
       }" class="carousel__img" alt="slide">
       <div class="carousel__caption">
-        <span class="carousel__price">€${parseInt(element.price).toFixed(
+        <span class="carousel__price">€${element.price.toFixed(
           2
         )}</span>
         <div class="carousel__title">${element.name}</div>
