@@ -2,13 +2,11 @@ import createElement from '../../assets/lib/create-element.js';
 
 export default class Modal {
   constructor() {
-    this._modal = createElement(this.template);
+    this._modal = createElement(this.template());
 
     this._modalTitle = this._modal.querySelector('.modal__title');
     this._modalBody = this._modal.querySelector('.modal__body');
     this._modalCloseBTN = this._modal.querySelector('.modal__close');
-
-    this._initModalEvents();
   }
 
   template() {
@@ -38,17 +36,6 @@ export default class Modal {
     `
   };
 
-  _initModalEvents() {
-    this._modalCloseBTN.addEventListener('click', this.close);
-    document.addEventListener('keyup', (event) => this._closeKeyESC(event));
-  };
-
-  open() {
-    const body = document.querySelector('body');
-    body.append(this._modal);
-    body.classList.add('is-modal-open');
-  }
-
   setTitle(node) {
     this._modalTitle.innerHTML = node;
   }
@@ -58,23 +45,31 @@ export default class Modal {
     this._modalBody.append(node);
   }
 
+  open() {
+      const body = document.querySelector('body');
+      body.append(this._modal);
+      body.classList.add('is-modal-open');
+
+      this._modalCloseBTN.addEventListener('click', this.close.bind(this));
+      document.addEventListener('keydown', this._closeKeyESC.bind(this));
+    }
+
   //добавить закрытие модального окна при клике по крестику и при нажатии ESC
   close() {
     const modal = document.querySelector('.modal');
     const body = document.querySelector('body');
 
-    const onCloseItem = () => {
-      body.classList.remove('is-modal-open');
-    };
-
-    onCloseItem();
+    body.classList.remove('is-modal-open');
     modal.remove();
+
+    // Удаляем обработчики событий
+    this._modalCloseBTN.removeEventListener('click', this.close);
+    document.removeEventListener('keydown', this._closeKeyESC);
   }
 
   _closeKeyESC(event) {
-    const body = document.querySelector('body');
-    
-    if(event.code == 'Escape' && body.classList.contains('is-modal-open')) {
+    event.preventDefault();
+    if(event.code == 'Escape') {
       this.close();
     }
   }
