@@ -50,10 +50,12 @@ export default class StepSlider {
     const thumb = this._slider.querySelector('.slider__thumb');
     const sliderValue = this._slider.querySelector('.slider__value');
     const sliderProgress = this._slider.querySelector('.slider__progress');
+    const sliderSpanChildren = this._slider.querySelector('.slider__steps').children;
     const segments = this._steps - 1;
 
     thumb.style.left = (this._value / segments * 100) + '%';
     sliderProgress.style.width = (this._value / segments * 100) + '%';
+    sliderSpanChildren[this._value].classList.add('slider__step-active')
 
     this._sliderCustomEvent(this._value);
   }
@@ -64,6 +66,7 @@ export default class StepSlider {
     const thumb = document.querySelector('.slider__thumb');
     const sliderValue = document.querySelector('.slider__value');
     const sliderProgress = this._slider.querySelector('.slider__progress');
+    const sliderSpanChildren = this._slider.querySelector('.slider__steps').children;
     const segments = this._steps - 1; 
 
     let shiftX = event.clientX - this._slider.getBoundingClientRect().left; //позиция клика по оси Х
@@ -81,6 +84,11 @@ export default class StepSlider {
 
     thumb.style.left = (newLeft / segments * 100) + '%'; //установил значение
     sliderProgress.style.width = (newLeft / segments * 100) + '%'; //установил заливку
+
+    for (let index = 0; index < sliderSpanChildren.length; index++) {
+      sliderSpanChildren[index].className = 
+        index === newLeft ? 'slider__step-active' : '';
+    }
 
     if (sliderValue) {
       this._sliderCustomEvent(newLeft);
