@@ -63,8 +63,8 @@ export default class StepSlider {
   _sliderThumbMove(event) {
     event.preventDefault(); //убрать выделение при mousemove
 
-    const thumb = document.querySelector('.slider__thumb');
-    const sliderValue = document.querySelector('.slider__value');
+    const thumb = this._slider.querySelector('.slider__thumb');
+    const sliderValue = this._slider.querySelector('.slider__value');
     const sliderProgress = this._slider.querySelector('.slider__progress');
     const sliderSpanChildren = this._slider.querySelector('.slider__steps').children;
     const segments = this._steps - 1; 
@@ -72,11 +72,6 @@ export default class StepSlider {
     let shiftX = event.clientX - this._slider.getBoundingClientRect().left; //позиция клика по оси Х
     let segmentPoint = (shiftX / this._slider.offsetWidth * segments); //высчитал сегмент в котором произошел клик
     let newLeft = Math.round(segmentPoint);
-
-    //для customEvent
-    if (newLeft == -0){
-      newLeft = 0;
-    }
 
     if (sliderValue) {
       sliderValue.textContent = newLeft;
