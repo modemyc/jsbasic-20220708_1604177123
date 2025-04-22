@@ -46,23 +46,13 @@ export default class CartIcon {
       document.documentElement.clientWidth - this.elem.offsetWidth - 10
     ) + 'px';
     
-    if (document.documentElement.clientWidth <= 767) {
+    if (document.documentElement.clientWidth <= 767 || startPosition == 50) {
       Object.assign(this.elem.style, {
         position: '',
         top: '',
         left: '',
         zIndex: ''
       });
-    }
-    
-    if (startPosition == 50) {
-      Object.assign(this.elem.style, {
-        position: '',
-        top: '',
-        zIndex: '',
-        right: '',
-        left: ''
-      })
     }
     
     if (startPosition < window.pageYOffset) {
