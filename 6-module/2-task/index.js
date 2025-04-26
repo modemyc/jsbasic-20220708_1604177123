@@ -13,7 +13,7 @@ export default class ProductCard {
       `<div class="card">
         <div class="card__top">
             <img src="/assets/images/products/${this._product.image}" class="card__image" alt="product">
-            <span class="card__price">€${parseInt(this._product.price).toFixed(2)}</span>
+            <span class="card__price">€${parseFloat(this._product.price).toFixed(2)}</span>
         </div>
         <div class="card__body">
             <div class="card__title">${this._product.name}</div>
