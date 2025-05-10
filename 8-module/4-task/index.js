@@ -13,23 +13,49 @@ export default class Cart {
   }
 
   addProduct(product) {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    if(!this._checkProduct(product)) {
+      return;
+    };
+
+    let cartItem = this.cartItems.find(item => item.product.id === product.id);
+
+    if (cartItem) {
+      cartItem.count += 1;
+    } else {
+      const cartItem = {product, count: 1}
+      this.cartItems.push(cartItem);
+    }
+
+    this.onProductUpdate(cartItem);
   }
 
   updateProductCount(productId, amount) {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    let cartItem = this.cartItems.find(item => item.product.id === productId);
+
+    cartItem.count += amount || 1;
+
+    if (cartItem.count <= 0) {
+      this.cartItems = this.cartItems.filter(
+        (item) => item.product.id !== productId
+      );
+    }
+
+    this.onProductUpdate(cartItem);
   }
 
   isEmpty() {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    return !this.cartItems.length;
   }
 
   getTotalCount() {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    return this.cartItems.reduce((sum, val) => sum + val.count, 0);
   }
 
   getTotalPrice() {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    return this.cartItems.reduce(
+      (sum, val) => sum + val.count * val.product.price,
+      0
+    );
   }
 
   renderProduct(product, count) {
@@ -100,5 +126,14 @@ export default class Cart {
   addEventListeners() {
     this.cartIcon.elem.onclick = () => this.renderModal();
   }
+
+  _checkProduct(product) {
+    return Object.prototype.toString.apply(product) === '[object Object]'
+    && "id" in product 
+    && "image" in product
+    && "name" in product
+    && "price" in product
+    && "category" in product
+  };
 }
 
