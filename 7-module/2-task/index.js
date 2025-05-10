@@ -2,12 +2,11 @@ import createElement from '../../assets/lib/create-element.js';
 
 export default class Modal {
   constructor() {
-    this._modal = this._createElement(this.template());
+    this._modal = createElement(this.template());
     this._modalTitle = this._modal.querySelector('.modal__title');
     this._modalBody = this._modal.querySelector('.modal__body');
     this._modalCloseBTN = this._modal.querySelector('.modal__close');
     
-    // Привязка контекста для обработчиков
     this._handleCloseClick = this.close.bind(this);
     this._handleKeyDown = this._closeKeyESC.bind(this);
   }
@@ -66,9 +65,4 @@ export default class Modal {
     }
   }
 
-  _createElement(html) {
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    return div.firstElementChild;
-  }
 }
