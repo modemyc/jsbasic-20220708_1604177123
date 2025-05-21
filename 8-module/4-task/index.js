@@ -5,9 +5,11 @@ import Modal from '../../7-module/2-task/index.js';
 
 export default class Cart {
   cartItems = []; // [product: {...}, count: N]
+  modal;
 
   constructor(cartIcon) {
     this.cartIcon = cartIcon;
+    // this.modal = new Modal();
 
     this.addEventListeners();
   }
@@ -78,7 +80,7 @@ export default class Cart {
               <img src="/assets/images/icons/square-plus-icon.svg" alt="plus">
             </button>
           </div>
-          <div class="cart-product__price">€${product.price.toFixed(2)}</div>
+          <div class="cart-product__price">€${(product.price * count).toFixed(2)}</div>
         </div>
       </div>
     </div>`);
@@ -110,17 +112,74 @@ export default class Cart {
   }
 
   renderModal() {
-    // ...ваш код
+    this.modal = new Modal();
+    this.modal.setTitle('Your order');
+
+    let wrapper = document.createElement('div');
+
+    this.cartItems.forEach(elem => {
+      wrapper.append(this.renderProduct(elem.product, elem.count));
+    });
+    wrapper.append(this.renderOrderForm());
+    this.modal.setBody(wrapper);
+
+    this.modal.open();
+
+    const productCard = document.querySelectorAll('.cart-product');
+
+    productCard.forEach((elem) => {
+      elem.addEventListener('click', (event) => {
+        let cartItem = this.cartItems.find(item => item.product.id === elem.dataset.productId);
+        let counter = elem.querySelector('.cart-counter__count');
+        const totalPrice = document.querySelector('.cart-buttons__info-price');
+        const productPrice = elem.querySelector('.cart-product__price');
+
+        if (event.target.closest('.cart-counter__button_plus')) {
+          this.updateProductCount(elem.dataset.productId, 1);
+        }
+        if(event.target.closest('.cart-counter__button_minus')){
+          this.updateProductCount(elem.dataset.productId, -1);
+        }
+
+        counter.innerHTML = cartItem.count;
+        productPrice.innerHTML = `€${(cartItem.product.price * cartItem.count).toFixed(2)}`
+        totalPrice.innerHTML = `€${this.getTotalPrice().toFixed(2)}`;
+
+        if(productPrice.innerText === '€0.00') {
+          elem.remove();
+        }
+        if(this.cartItems.length === 0){
+          this.modal.close();
+        }
+
+        this.onProductUpdate(cartItem);
+      })
+    })
+    
+    let submitForm = document.querySelector('form');
+    submitForm.addEventListener('submit', this.onSubmit)
   }
 
   onProductUpdate(cartItem) {
-    // ...ваш код
-
     this.cartIcon.update(this);
   }
 
-  onSubmit(event) {
-    // ...ваш код
+  onSubmit(event){
+    event.preventDefault();
+    
+    let formElem = document.querySelector('.cart-form');
+
+    fetch ('https://httpbin.org/post', {
+      method: 'post',
+      body: new FormData(formElem)
+    })
+    .then((response) => {
+      if (response.ok){
+        // this.modal.close();
+        console.log(this.modal);
+      }
+    })
+
   };
 
   addEventListeners() {
