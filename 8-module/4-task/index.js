@@ -5,11 +5,11 @@ import Modal from '../../7-module/2-task/index.js';
 
 export default class Cart {
   cartItems = []; // [product: {...}, count: N]
-  modal;
 
   constructor(cartIcon) {
     this.cartIcon = cartIcon;
-    // this.modal = new Modal();
+    this.modal = null;
+    this.onSubmit = this.onSubmit.bind(this);
 
     this.addEventListeners();
   }
@@ -156,8 +156,7 @@ export default class Cart {
       })
     })
     
-    let submitForm = document.querySelector('form');
-    submitForm.addEventListener('submit', this.onSubmit)
+    this.modal._modalBody.querySelector('form').onsubmit = this.onSubmit;
   }
 
   onProductUpdate(cartItem) {
@@ -167,18 +166,31 @@ export default class Cart {
   onSubmit(event){
     event.preventDefault();
     
-    let formElem = document.querySelector('.cart-form');
+    let formElem = this.modal._modalBody.querySelector('form');
+    let submitButton = this.modal._modal.querySelector('.cart-buttons__button');
+
+    submitButton.classList.add('is-loading');
 
     fetch ('https://httpbin.org/post', {
-      method: 'post',
+      method: 'POST',
       body: new FormData(formElem)
     })
-    .then((response) => {
+    .then(function(response) {
       if (response.ok){
-        // this.modal.close();
-        console.log(this.modal);
+        this.cartItems = [];
+        this.modal.setTitle('Success!');
+        this.modal.setBody(createElement(`
+           <div class="modal__body-inner">
+          <p>
+            Order successful! Your order is being cooked :) <br>
+            We’ll notify you about delivery time shortly.<br>
+            <img src="/assets/images/delivery.gif">
+          </p>
+        </div>
+          `))
+        this.onProductUpdate(this);
       }
-    })
+    }.bind(this))
 
   };
 
