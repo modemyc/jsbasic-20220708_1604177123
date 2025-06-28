@@ -1,177 +1,139 @@
 import createElement from "../../assets/lib/create-element.js";
 
 export default class StepSlider {
+  #steps = 0;
+  #value = 0;
+  #previousValue = 0;
+
+  elem = null;
+  #sliderThumb = null;
+  #sliderValue = null;
+  #sliderProgress = null;
+  #sliderSteps = null;
+
   constructor({ steps, value = 0 }) {
-    this._steps = steps;
-    this._value = value;
+    this.#steps = steps;
+    this.#value = Math.min(value, steps - 1);
+    this.#previousValue = this.#value;
 
-    this._slider = createElement(this.template());
+    this.elem = createElement(this.#template());
+    this.#sliderThumb = this.elem.querySelector(".slider__thumb");
+    this.#sliderValue = this.elem.querySelector(".slider__value");
+    this.#sliderProgress = this.elem.querySelector(".slider__progress");
+    this.#sliderSteps = this.elem.querySelector(".slider__steps");
 
-    this._spanMaker();
-    this._sliderInitEvents();
-    this._setValue();
+    this.#sliderThumb.ondragstart = () => false;
+    this.elem.addEventListener("pointerdown", this.#mousePointerdown);
+    this.elem.addEventListener("click", this.#onSliderClick);
+
+    this.#setStep(this.elem);
+    this.#moveToValue();
   }
 
-  get elem() {
-    return this._slider;
-  }
+  #template() {
+    let spansHTML = "";
+    for (let index = 0; index < this.#steps; index++)
+      spansHTML += "<span></span>";
 
-  template() {
     return `
-      <div class="slider">
-
-        <!--Ползунок слайдера с активным значением-->
-        <div class="slider__thumb" style="left: 0%;">
-          <span class="slider__value">${this._value}</span>
-        </div>
-
-        <!--Заполненная часть слайдера-->
-        <div class="slider__progress" style="width: 0%;"></div>
-
-        <!--Шаги слайдера-->
-        <div class="slider__steps"></div>
+    <!--Корневой элемент слайдера-->
+    <div class="slider">
+  
+      <!--Ползунок слайдера с активным значением-->
+      <div class="slider__thumb" style="left: 50%;">
+        <span class="slider__value">2</span>
       </div>
-    `
+  
+      <!--Заполненная часть слайдера-->
+      <div class="slider__progress" style="width: 50%;"></div>
+  
+      <!--Шаги слайдера-->
+      <div class="slider__steps">
+        ${spansHTML}
+      </div>
+    </div>
+      `;
+  }
+
+  #onSliderClick = (event) => {
+    this.#setNearestValue(event.pageX);
+    this.#setStep();
+    this.#moveToValue();
+    this.#sliderChangeEvent();
   };
 
-  _spanMaker() {
-    const sliderSteps = this._slider.querySelector('.slider__steps');
-    sliderSteps.innerHTML = '';
-    for (let index = 0; index < this._steps; index++) {
-      sliderSteps.insertAdjacentHTML('beforeend', '<span></span>');
+  #mousePointerdown = (event) => {
+    const moveThumb = (pageX) => {
+      this.#sliderThumb.style.left = this.#calcThumbCoords(pageX).pc + "%";
+      this.#sliderProgress.style.width = this.#calcThumbCoords(pageX).pc + "%";
+
+    };
+
+    const onPointermove = (event) => {
+      moveThumb(event.pageX);
+      this.#setNearestValue(event.pageX);
+      this.#setStep();
+     };
+
+    this.elem.classList.add("slider_dragging");
+
+    document.addEventListener("pointermove", onPointermove);
+    document.onpointerup = () => {
+      document.removeEventListener("pointermove", onPointermove);
+      document.onpointerup = null;
+
+      this.#setStep();
+      this.#moveToValue();
+      this.#sliderChangeEvent();
+
+      this.elem.classList.remove("slider_dragging");
+    };
+  };
+
+  #moveToValue(){
+    const leftPercents = Math.round((this.#value / (this.#steps - 1)) * 100);
+    this.#sliderProgress.style.width = `${leftPercents}%`;
+    this.#sliderThumb.style.left = `${leftPercents}%`;
+  }
+
+  #calcThumbCoords(pageX) {
+    const rect = this.#sliderSteps.getBoundingClientRect();
+    let thumbXCoord = pageX - (rect.left + window.pageXOffset);
+    thumbXCoord = Math.max(thumbXCoord, 0);
+    thumbXCoord = Math.min(thumbXCoord, rect.width);
+
+    return { px: thumbXCoord, pc: (thumbXCoord / rect.width) * 100 };
+    
+  }
+  
+  #setStep() {
+    this.#sliderValue.innerHTML = this.#value;
+
+    const stepsChildren = this.#sliderSteps.children;
+    for (let index = 0; index < stepsChildren.length; index++) {
+      stepsChildren[index].className =
+        index === this.#value ? "slider__step-active" : "";
+    }
+
+  }
+
+  #setNearestValue = (pageX) => {
+    this.#value = Math.round(
+      this.#calcThumbCoords(pageX).px /
+        (this.#sliderSteps.getBoundingClientRect().width / (this.#steps - 1))
+    );
+  };
+
+  #sliderChangeEvent(){
+    if (this.#previousValue !== this.#value) {
+      this.elem.dispatchEvent(
+        new CustomEvent("slider-change", {
+          detail: this.#value, // значение 0, 1, 2, 3, 4
+          bubbles: true, // событие всплывает - это понадобится в дальнейшем
+        })
+      );
+      this.#previousValue = this.#value;
     }
   }
 
-  _sliderInitEvents () {
-    const thumb = this._slider.querySelector('.slider__thumb');
-
-    this._slider.addEventListener('click', this._sliderThumbMove.bind(this));
-    thumb.addEventListener('pointerdown', this._onPointerDown.bind(this));
-  }
-
-  _setValue() {
-    const thumb = this._slider.querySelector('.slider__thumb');
-    const sliderProgress = this._slider.querySelector('.slider__progress');
-    const sliderSpanChildren = this._slider.querySelector('.slider__steps').children;
-    const segments = this._steps - 1;
-
-    thumb.style.left = (this._value / segments * 100) + '%';
-    sliderProgress.style.width = (this._value / segments * 100) + '%';
-    sliderSpanChildren[this._value].classList.add('slider__step-active')
-
-    this._sliderCustomEvent(this._value);
-  }
-
-  _onPointerDown(event) {
-    event.preventDefault();
-
-    const thumb = this._slider.querySelector('.slider__thumb');
-    const sliderProgress = this._slider.querySelector('.slider__progress');
-    const sliderSpanChildren = this._slider.querySelector('.slider__steps').children;
-    const sliderValue = this._slider.querySelector('.slider__value');
-    const segments = this._steps - 1; 
-
-    const shiftX = event.clientX - thumb.getBoundingClientRect().left;
-
-    const _onPointerMove = (event) => {
-      let newLeft = event.clientX - this._slider.getBoundingClientRect().left;
-
-      if (newLeft < 0) {
-        newLeft = 0;
-      }
-
-      if (newLeft > this._slider.offsetWidth) {
-        newLeft = this._slider.offsetWidth;
-      }
-
-      const segmentPoint = (newLeft / this._slider.offsetWidth * segments);
-      const endLeft = Math.round(segmentPoint);
-
-      for (let index = 0; index < sliderSpanChildren.length; index++) {
-        sliderSpanChildren[index].className = 
-          index === endLeft ? '' : '';
-      }
-
-      if (sliderValue) {
-        sliderValue.textContent = endLeft;
-      }
-
-      sliderProgress.style.width = newLeft + 'px';
-      thumb.style.left = newLeft + 'px';
-      this._slider.classList.add('slider_dragging');
-      
-    }
-
-    const _onPointerUp = (event) => {
-      document.removeEventListener('pointerup', _onPointerUp);
-      document.removeEventListener('pointermove', _onPointerMove);
-
-      let newLeft = event.clientX - shiftX - this._slider.getBoundingClientRect().left;
-      const segmentPoint = (newLeft / this._slider.offsetWidth * segments);
-      let endLeft = Math.round(segmentPoint);
-      this._slider.classList.remove('slider_dragging');
-
-      if (newLeft < 0) {
-        endLeft = 0;
-      }
-
-      if (newLeft > this._slider.offsetWidth) {
-        endLeft = segments;
-      }
-      
-      thumb.style.left = (endLeft / segments * 100) + '%'; //установил значение
-      sliderProgress.style.width = (endLeft / segments * 100) + '%'; //установил заливку
-
-      for (let index = 0; index < sliderSpanChildren.length; index++) {
-        sliderSpanChildren[index].className = 
-          index === endLeft ? 'slider__step-active' : '';
-      }
-
-      if (sliderValue) {
-        sliderValue.textContent = endLeft;
-        this._sliderCustomEvent(endLeft);
-      }
-    }
-
-    document.addEventListener('pointermove', _onPointerMove);
-    document.addEventListener('pointerup', _onPointerUp);
-  }
-
-  _sliderThumbMove(event) {
-    const thumb = this._slider.querySelector('.slider__thumb');
-    const sliderValue = this._slider.querySelector('.slider__value');
-    const sliderProgress = this._slider.querySelector('.slider__progress');
-    const sliderSpanChildren = this._slider.querySelector('.slider__steps').children;
-    const segments = this._steps - 1; 
-
-    let shiftX = event.clientX - this._slider.getBoundingClientRect().left; //позиция клика по оси Х
-    let segmentPoint = (shiftX / this._slider.offsetWidth * segments); //высчитал сегмент в котором произошел клик
-    let newLeft = Math.round(segmentPoint);
-
-    if (sliderValue) {
-      sliderValue.textContent = newLeft;
-    }
-
-    thumb.style.left = (newLeft / segments * 100) + '%'; //установил значение
-    sliderProgress.style.width = (newLeft / segments * 100) + '%'; //установил заливку
-
-    for (let index = 0; index < sliderSpanChildren.length; index++) {
-      sliderSpanChildren[index].className = 
-        index === newLeft ? 'slider__step-active' : '';
-    }
-
-    if (sliderValue) {
-      this._sliderCustomEvent(newLeft);
-    }
-  }
-
-  _sliderCustomEvent(value) {
-    this.elem.dispatchEvent(
-      new CustomEvent('slider-change', { // имя события должно быть именно 'slider-change'
-        detail: value, // значение 0, 1, 2, 3, 4 ...
-        bubbles: true // событие всплывает - это понадобится в дальнейшем
-        }
-      )
-    )
-  }
 }
