@@ -26,8 +26,7 @@ export default class ProductCard {
   }
 
   eventInit() {
-    let btn = this._elem.querySelector('.card__button');
-    btn.addEventListener("click", (event) => {
+    this._elem.querySelector('.card__button').addEventListener("click", (event) => {
       event.target.dispatchEvent(
         new CustomEvent("product-add", { // имя события должно быть именно "product-add"
           detail: this._product.id, // Уникальный идентификатора товара из объекта товара
