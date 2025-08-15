@@ -16,16 +16,16 @@ export default class Carousel {
     return `
     <div class="carousel">
     <div class="carousel__arrow carousel__arrow_right">
-      <img src="../../assets/images/icons/angle-icon.svg" alt="icon">
+      <img src="./assets/images/icons/angle-icon.svg" alt="icon">
     </div>
     <div class="carousel__arrow carousel__arrow_left">
-      <img src="../../assets/images/icons/angle-left-icon.svg" alt="icon">
+      <img src="./assets/images/icons/angle-left-icon.svg" alt="icon">
     </div>
     <div class="carousel__inner">
     ${this.slides.map(
         (element) => `
     <div class="carousel__slide" data-id=${element.id}>
-      <img src="../../assets/images/carousel/${
+      <img src="./assets/images/carousel/${
         element.image
       }" class="carousel__img" alt="slide">
       <div class="carousel__caption">
@@ -34,7 +34,7 @@ export default class Carousel {
         )}</span>
         <div class="carousel__title">${element.name}</div>
         <button type="button" class="carousel__button">
-          <img src="../../assets/images/icons/plus-icon.svg" alt="icon">
+          <img src="./assets/images/icons/plus-icon.svg" alt="icon">
         </button>
       </div>
     </div>
