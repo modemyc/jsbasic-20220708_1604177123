@@ -26,7 +26,7 @@ export default class Main {
     const stepSlider = new StepSlider({steps: 5, value: 3});
     document.querySelector('[data-slider-holder]').append(stepSlider.elem)
 
-    const productsData = await fetch("../../public/data/products.json");
+    const productsData = await fetch("./9-module/2-task/products.json");
     let products = [];
     
     if (productsData.ok){
