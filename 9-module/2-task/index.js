@@ -26,11 +26,14 @@ export default class Main {
     const stepSlider = new StepSlider({steps: 5, value: 3});
     document.querySelector('[data-slider-holder]').append(stepSlider.elem)
 
-    const productsData = await fetch("products.json");
+    const productsData = await fetch("../../public/data/products.json");
     let products = [];
+    
     if (productsData.ok){
-      products = await productsData.json()
-    } 
+      products = await productsData.json();
+    } else {
+      console.log('problem')
+    }
     const productsGrid = new ProductsGrid(products);
     document.querySelector('[data-products-grid-holder]').append(productsGrid.elem);
 
